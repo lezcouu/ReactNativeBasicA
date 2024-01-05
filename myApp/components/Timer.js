@@ -14,15 +14,16 @@ export const Timer = ({ time }) => {
 
 const styles = StyleSheet.create({
   container: {
-    justifyContent: 'center',
     backgroundColor: '#F2F2F2',
-    padding: 50,
-    borderRadius: 15
+    borderRadius: 15,
+    justifyContent: 'center',
+    marginHorizontal: 10,
+    padding: 50
   },
   time: {
+    color: '#333333',
     fontSize: 80,
     fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333333'
+    textAlign: 'center'
   }
 });

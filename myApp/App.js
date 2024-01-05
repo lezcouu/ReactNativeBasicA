@@ -4,6 +4,8 @@ import { Header } from './components/Header';
 import { useEffect, useState } from 'react';
 import { Timer } from './components/Timer';
 import { Audio } from 'expo-av';
+import { RenderButton } from './components/RenderButton';
+import { LearPomodoro } from './components/LearPomodoro';
 
 const colors = ['#F7DC6F', '#A2D9CE', '#D7BDE2'];
 
@@ -16,18 +18,27 @@ export default function App() {
   const LINK_START = './assets/start.mp3';
   const LINK_STOP = './assets/stop.mp3';
 
-  const playSound = async (DYNAMIC_LINK) => {
-    const { sound } = await Audio.Sound.createAsync(require(LINK_START));
+  const playSound = async (start) => {
+    if (start) {
+      const { sound } = await Audio.Sound.createAsync(require(LINK_START));
+      return await sound.playAsync();
+    }
+
+    const { sound } = await Audio.Sound.createAsync(require(LINK_STOP));
     await sound.playAsync();
   };
 
-  const handleStartStop = () => {
+  const handleStartStop = (restart) => {
+    if (restart) {
+      playSound('start');
+      return setIsActive(false);
+    }
     if (!!isActive) {
       playSound();
       setIsActive(!isActive);
     }
     if (!isActive) {
-      playSound();
+      playSound('start');
       setIsActive(!isActive);
     }
   };
@@ -37,12 +48,13 @@ export default function App() {
     if (!!isActive) {
       interval = setInterval(() => {
         setTime(time - 1);
-      }, 10);
+      }, 1000);
     } else {
       clearInterval(interval);
     }
 
     if (time === 0) {
+      playSound();
       setIsActive(false);
       setIsWorking((prev) => !prev);
       setTime(isWorking ? 300 : 1500);
@@ -54,13 +66,19 @@ export default function App() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors[currentTime] }]}>
       <View>
         <Text style={styles.text}>Pomodoro</Text>
-        <Header currentTime={currentTime} setCurrentTime={setCurrentTime} setTime={setTime} />
+        <Header
+          handleStartStop={handleStartStop}
+          currentTime={currentTime}
+          setCurrentTime={setCurrentTime}
+          setTime={setTime}
+        />
         <Timer time={time} />
-        <TouchableOpacity onPress={() => handleStartStop()} style={styles.button}>
-          <Text style={{ fontWeight: 'bold', color: 'white', fontSize: 20 }}>{isActive ? 'STOP' : 'START'}</Text>
-        </TouchableOpacity>
-        <StatusBar style='auto' />
+        <RenderButton isActive={isActive} time={time} onPress={handleStartStop} />
       </View>
+      <View>
+        <LearPomodoro />
+      </View>
+      <StatusBar style='auto' />
     </SafeAreaView>
   );
 }
@@ -68,18 +86,14 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
     paddingHorizontal: 30,
     paddingVertical: 40
   },
-  button: {
-    alignItems: 'center',
-    padding: 15,
-    marginTop: 10,
-    borderRadius: 15,
-    backgroundColor: '#333333'
-  },
   text: {
     fontSize: 32,
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    marginHorizontal: 10
   }
 });
